@@ -577,7 +577,7 @@ export default function Dashboard() {
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ padding: "22px 32px 40px", maxWidth: 1280, margin: "0 auto" }}>
+      <div style={{ padding: "22px 32px 40px", maxWidth: "100%", margin: "0 auto" }}>
         {/* Source status */}
         <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
           <SourceStrip sources={sources} />
