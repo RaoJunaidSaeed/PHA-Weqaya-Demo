@@ -103,16 +103,16 @@ async function fetchIncidents() {
     
     // Pass the rows through the logic engine
     return rows.map(row => deriveIncident({
-      id: row.id || row.Id,
-      type: row.type || row.Type || 'Unspecified',
+      id: row.id || row.Id || row.incident_id,
+      type: row.type || row.Type || row.incident_type || 'Unspecified',
       region: row.region || row.Region || 'Unspecified',
       severity: row.severity || row.Severity || 'Unknown',
       status: row.status || row.Status || 'Open',
       // If the sheet leaves eventDate blank, fallback to detectionDate
-      eventDate: row.eventDate || row.EventDate || row.detectionDate || row.DetectionDate, 
-      detectionDate: row.detectionDate || row.DetectionDate,
-      notificationDate: row.notificationDate || row.NotificationDate,
-      responseDate: row.responseDate || row.ResponseDate || null,
+      eventDate: row.eventDate || row.EventDate || row.detectionDate || row.DetectionDate || row.detection_date, 
+      detectionDate: row.detectionDate || row.DetectionDate || row.detection_date,
+      notificationDate: row.notificationDate || row.NotificationDate || row.notification_date,
+      responseDate: row.responseDate || row.ResponseDate || row.response_date || null,
       source: row.source || row.Source || 'portal_upload' // Capture the source for the UI counts!
     }));
   } catch (error) {
