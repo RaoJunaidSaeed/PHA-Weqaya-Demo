@@ -103,7 +103,7 @@ async function fetchIncidents() {
     
     // Pass the rows through the logic engine
     return rows.map(row => deriveIncident({
-      id: row.id || row.Id || row.incident_id,
+      id: row.incident_id || row.id || row.Id,
       type: row.type || row.Type || row.incident_type || 'Unspecified',
       region: row.region || row.Region || 'Unspecified',
       severity: row.severity || row.Severity || 'Unknown',
