@@ -448,6 +448,7 @@ export default function Dashboard() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastSync, setLastSync] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -489,10 +490,12 @@ export default function Dashboard() {
         body: formData
       });
 
-      alert(`Successfully sent ${files.length} document(s) in a single trigger to n8n!`);
+      setToast({ type: 'success', msg: `Successfully sent ${files.length} document(s) in a single trigger to n8n!` });
+      setTimeout(() => setToast(null), 5000);
       
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      setToast({ type: 'error', msg: 'Upload failed: ' + err.message });
+      setTimeout(() => setToast(null), 5000);
     } finally {
       setLoading(false);
       event.target.value = null; 
@@ -520,7 +523,27 @@ export default function Dashboard() {
         * { box-sizing: border-box; }
         ::selection { background: ${C.teal}33; }
         select:focus, button:focus { outline: 2px solid ${C.teal}; outline-offset: 1px; }
+        @keyframes toastFadeInOut {
+          0% { opacity: 0; transform: translate(-50%, -20px); }
+          10% { opacity: 1; transform: translate(-50%, 0); }
+          90% { opacity: 1; transform: translate(-50%, 0); }
+          100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
       `}</style>
+
+      {toast && (
+        <div style={{
+          position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+          background: toast.type === 'error' ? C.red : C.teal, color: "white", 
+          padding: "14px 24px", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 500,
+          zIndex: 9999, animation: "toastFadeInOut 5s forwards",
+          display: "flex", alignItems: "center", gap: 10
+        }}>
+          {toast.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+          {toast.msg}
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ background: `linear-gradient(120deg, ${C.navyDeep}, ${C.navy} 55%, ${C.teal})`, padding: "22px 32px", color: "#fff" }}>
