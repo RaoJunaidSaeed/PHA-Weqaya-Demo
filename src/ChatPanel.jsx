@@ -31,33 +31,33 @@ export default function ChatPanel() {
   }, [messages, isTyping, isOpen]);
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    
+    // Guard: ignore empty input and double sends while waiting for a reply
+    if (!inputValue.trim() || isTyping) return;
+
     const userMsg = inputValue.trim();
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInputValue('');
     setIsTyping(true);
 
-    // ==========================================
-    // PRODUCTION N8N WEBHOOK INTEGRATION (RAG)
-    // ==========================================
     try {
-        const response = await fetch('https://logicmount.app.n8n.cloud/webhook/pha-chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: userMsg })
-        });
-        
-        // n8n Webhook node (lastNode mode) typically returns an array of objects
-        const data = await response.json();
-        const answer = Array.isArray(data) ? data[0]?.output : data?.output;
-        
-        setIsTyping(false);
-        setMessages(prev => [...prev, { role: 'system', text: answer }]);
+      const response = await fetch('https://logicmount.app.n8n.cloud/webhook/pha-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: userMsg })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      const answer =
+        (Array.isArray(data) ? data[0]?.output : data?.output) ||
+        'Sorry, I could not get an answer. Please try again.';
+
+      setIsTyping(false);
+      setMessages(prev => [...prev, { role: 'system', text: answer }]);
     } catch (err) {
-        console.error(err);
-        setIsTyping(false);
-        setMessages(prev => [...prev, { role: 'system', text: 'Error connecting to the AI endpoint.' }]);
+      console.error(err);
+      setIsTyping(false);
+      setMessages(prev => [...prev, { role: 'system', text: 'Error connecting to the AI endpoint.' }]);
     }
   };
 
@@ -72,7 +72,7 @@ export default function ChatPanel() {
     <>
       {/* Floating Action Button */}
       {!isOpen && (
-        <button 
+        <button
           onClick={() => setIsOpen(true)}
           style={{
             position: 'fixed', bottom: 30, right: 30, zIndex: 50,
@@ -97,7 +97,7 @@ export default function ChatPanel() {
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif'
       }}>
-        
+
         {/* Header */}
         <div style={{
           padding: '20px 24px', backgroundColor: C.navy, color: 'white',
@@ -110,7 +110,7 @@ export default function ChatPanel() {
               <div style={{ fontSize: 11, color: C.line, opacity: 0.8 }}>Powered by Self-Hosted RAG</div>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 4 }}
           >
@@ -121,12 +121,12 @@ export default function ChatPanel() {
         {/* Message Area */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', backgroundColor: C.bg, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {messages.map((msg, i) => (
-            <div key={i} style={{ 
-              display: 'flex', flexDirection: 'column', 
-              alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' 
+            <div key={i} style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start'
             }}>
-              <div style={{ 
-                display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, 
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4,
                 color: C.muted, fontSize: 11, fontWeight: 500,
                 flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
               }}>
@@ -142,11 +142,11 @@ export default function ChatPanel() {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)', maxWidth: '90%',
                 border: msg.role === 'system' ? `1px solid ${C.line}` : 'none'
               }}>
-                /* {msg.text} */
-                <div dir="auto" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-  {msg.text}
-</div>
-                
+                {/* dir="auto" fixes Arabic direction; pre-wrap keeps line breaks */}
+                <div dir="auto" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {msg.text}
+                </div>
+
                 {/* Citations block */}
                 {msg.citations && (
                   <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.line}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -171,7 +171,7 @@ export default function ChatPanel() {
                 backgroundColor: 'white', padding: '12px 16px', borderRadius: 12, borderTopLeftRadius: 2,
                 border: `1px solid ${C.line}`, color: C.muted, fontSize: 13, fontStyle: 'italic'
               }}>
-                Searching vector corpus...
+                Thinking...
               </div>
             </div>
           )}
@@ -182,7 +182,7 @@ export default function ChatPanel() {
         <div style={{ padding: '16px', backgroundColor: 'white', borderTop: `1px solid ${C.line}` }}>
           <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
             <textarea
-               dir="auto"
+              dir="auto"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
