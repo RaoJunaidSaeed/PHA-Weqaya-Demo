@@ -16,7 +16,7 @@ export default function ChatPanel() {
   const [messages, setMessages] = useState([
     {
       role: 'system',
-      text: 'I have ingested 25 emergency documents (SITREPs, Field Emails, and Resource Spreadsheets) in Arabic and English. How can I assist you with the Public Health Events Center data today?',
+      text: 'Hello! I can help you with the emergency documents (SITREPs, field emails and resource spreadsheets) in Arabic and English. What would you like to know about the Public Health Events Center data?',
     }
   ]);
   const [inputValue, setInputValue] = useState('');
