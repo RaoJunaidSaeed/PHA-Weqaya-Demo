@@ -107,7 +107,7 @@ async function fetchIncidents() {
       type: row.type || row.Type || row.incident_type || 'Unspecified',
       region: row.region || row.Region || 'Unspecified',
       severity: row.severity || row.Severity || 'Unknown',
-      status: row.status || row.Status || 'Open',
+      status: row.status || row.Status || 'Not Set',
       // If the sheet leaves eventDate blank, fallback to detectionDate
       eventDate: row.eventDate || row.EventDate || row.detectionDate || row.DetectionDate || row.detection_date, 
       detectionDate: row.detectionDate || row.DetectionDate || row.detection_date,
