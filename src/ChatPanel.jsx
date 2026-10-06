@@ -78,6 +78,15 @@ const [inputFocused, setInputFocused] = useState(false);
     }
   };
 
+  const renderText = (text) =>
+    String(text ?? '')
+      .split(/(INC-\d{4}-\d{3})/g)
+      .map((part, i) =>
+        /^INC-\d{4}-\d{3}$/.test(part)
+          ? <bdi key={i} style={{ whiteSpace: 'nowrap' }}>{part}</bdi>
+          : part
+      );
+
   return (
     <>
       {/* Floating Action Button */}
@@ -154,8 +163,8 @@ const [inputFocused, setInputFocused] = useState(false);
               }}>
                 {/* dir="auto" fixes Arabic direction; pre-wrap keeps line breaks */}
                 <div dir="auto" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {msg.text}
-                </div>
+  {renderText(msg.text)}
+</div>
 
                 {/* Citations block */}
                 {msg.citations && (
