@@ -12,6 +12,8 @@ const C = {
 };
 
 export default function ChatPanel() {
+  const textareaRef = useRef(null);
+const [inputFocused, setInputFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -23,6 +25,14 @@ export default function ChatPanel() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+
+  useEffect(() => {
+  const el = textareaRef.current;
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}, [inputValue]);
+  
   // Auto-scroll to bottom of chat
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -179,40 +189,53 @@ export default function ChatPanel() {
         </div>
 
         {/* Input Area */}
-        <div style={{ padding: '16px', backgroundColor: 'white', borderTop: `1px solid ${C.line}` }}>
-          <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
-            <textarea
-              dir="auto"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about incidents, compliance, or field reports..."
-              style={{
-                flex: 1, resize: 'none', height: 44, padding: '12px 45px 12px 16px',
-                borderRadius: 22, border: `1px solid ${C.line}`, backgroundColor: C.bg,
-                fontFamily: 'Inter, sans-serif', fontSize: 13, color: C.ink,
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!inputValue.trim() || isTyping}
-              style={{
-                position: 'absolute', right: 6, top: 6,
-                width: 32, height: 32, borderRadius: '50%', border: 'none',
-                backgroundColor: inputValue.trim() ? C.teal : 'transparent',
-                color: inputValue.trim() ? 'white' : C.muted,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: inputValue.trim() ? 'pointer' : 'default', transition: 'background-color 0.2s'
-              }}
-            >
-              <Send size={16} style={{ marginLeft: inputValue.trim() ? -2 : 0 }} />
-            </button>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 8, fontSize: 10, color: C.muted }}>
-            Shift + Enter for new line
-          </div>
-        </div>
+{/* Input Area */}
+<div style={{ padding: '12px 16px 14px', backgroundColor: 'white', borderTop: `1px solid ${C.line}` }}>
+  <div style={{
+    display: 'flex', alignItems: 'flex-end', gap: 8,
+    padding: '6px 6px 6px 16px', borderRadius: 24,
+    backgroundColor: C.bg,
+    border: `1.5px solid ${inputFocused ? C.teal : C.line}`,
+    boxShadow: inputFocused ? `0 0 0 3px ${C.teal}22` : 'none',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+  }}>
+    <textarea
+      ref={textareaRef}
+      rows={1}
+      dir="auto"
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
+      onKeyDown={handleKeyDown}
+      onFocus={() => setInputFocused(true)}
+      onBlur={() => setInputFocused(false)}
+      placeholder="Ask about incidents or compliance..."
+      style={{
+        flex: 1, resize: 'none', border: 'none', outline: 'none',
+        background: 'transparent', fontFamily: 'Inter, sans-serif',
+        fontSize: 14, lineHeight: '20px', color: C.ink,
+        padding: '8px 0', maxHeight: 120, overflowY: 'auto',
+      }}
+    />
+    <button
+      onClick={handleSend}
+      disabled={!inputValue.trim() || isTyping}
+      aria-label="Send message"
+      style={{
+        width: 36, height: 36, flexShrink: 0, borderRadius: '50%', border: 'none',
+        backgroundColor: inputValue.trim() && !isTyping ? C.teal : C.line,
+        color: inputValue.trim() && !isTyping ? 'white' : C.muted,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: inputValue.trim() && !isTyping ? 'pointer' : 'default',
+        transition: 'background-color 0.2s ease',
+      }}
+    >
+      <Send size={16} />
+    </button>
+  </div>
+  <div style={{ textAlign: 'center', marginTop: 8, fontSize: 10.5, color: C.muted }}>
+    Enter to send · Shift + Enter for new line
+  </div>
+</div>
       </div>
     </>
   );
