@@ -18,7 +18,8 @@ const [inputFocused, setInputFocused] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'system',
-      text: 'Hello! I can help you with the emergency documents (SITREPs, field emails and resource spreadsheets) in Arabic and English. What would you like to know about the Public Health Events Center data?',
+      // text: 'Hello! I can help you with the emergency documents (SITREPs, field emails and resource spreadsheets) in Arabic and English. What would you like to know about the Public Health Events Center data?',
+      text: 'Hello! Ask me about incidents, compliance, or your uploaded emergency documents, in Arabic or English.',
     }
   ]);
   const [inputValue, setInputValue] = useState('');
