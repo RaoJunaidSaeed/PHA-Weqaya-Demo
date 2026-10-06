@@ -90,6 +90,13 @@ function deriveIncident(raw) {
   };
 }
 
+const normalizeStatus = (raw) => {
+  const s = (raw ?? "").toString().trim().toLowerCase();
+  if (s === "open") return "Open";
+  if (s === "closed") return "Closed";
+  return "Not Set"; // NULL, empty, or anything unexpected
+};
+
 async function fetchIncidents() {
   try {
     // Fetch live data from the W5 n8n Webhook
@@ -107,7 +114,7 @@ async function fetchIncidents() {
       type: row.type || row.Type || row.incident_type || 'Unspecified',
       region: row.region || row.Region || 'Unspecified',
       severity: row.severity || row.Severity || 'Unknown',
-      status: row.status || row.Status || 'Not Set',
+      status: normalizeStatus(row.status ?? row.Status),
       // If the sheet leaves eventDate blank, fallback to detectionDate
       eventDate: row.eventDate || row.EventDate || row.detectionDate || row.DetectionDate || row.detection_date, 
       detectionDate: row.detectionDate || row.DetectionDate || row.detection_date,
@@ -157,7 +164,7 @@ function Tag({ tone, children }) {
   const map = {
     high: { bg: "#fdecea", fg: C.red }, critical: { bg: "#f6dedb", fg: "#7b241c" },
     medium: { bg: "#fdf3e3", fg: C.amber }, low: { bg: "#e9f6ee", fg: C.green },
-    open: { bg: "#e6f0fa", fg: "#2874a6" }, closed: { bg: "#e9f6ee", fg: C.green },
+    open: { bg: "#e6f0fa", fg: "#2874a6" }, closed: { bg: "#e9f6ee", fg: C.green },"not set": { bg: C.bg, fg: C.muted },
   };
   const s = map[tone] || { bg: C.bg, fg: C.muted };
   return (
@@ -385,7 +392,7 @@ function IncidentTable({ incidents }) {
   const [regionFilter, setRegionFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const regions = ["All", ...Array.from(new Set(incidents.map((i) => i.region)))];
-  const statuses = ["All", "Open", "Closed"];
+  const statuses = ["All", "Open", "Closed", "Not Set"];
 
   const filtered = incidents.filter((i) =>
     (regionFilter === "All" || i.region === regionFilter) &&
@@ -507,14 +514,15 @@ export default function Dashboard() {
   const kpis = useMemo(() => {
     const total = incidents.length;
     // Count both 'Open' and 'Active' as open incidents
-    const open = incidents.filter((i) => i.status === "Open" || i.status === "Active" || i.status === "ACTIVE").length;
-    const closed = total - open;
+    const open = incidents.filter((i) => i.status === "Open").length;
+    const closed = incidents.filter((i) => i.status === "Closed").length;
+    const notSet = incidents.filter((i) => i.status === "Not Set").length;
     const closedResp = incidents.filter((i) => i.responseDays != null);
     const avgResp = closedResp.length
       ? (closedResp.reduce((s, i) => s + i.responseDays, 0) / closedResp.length).toFixed(1)
       : "—";
     const breaches = incidents.filter((i) => !i.detectionOk || !i.notificationOk || !i.responseOk).length;
-    return { total, open, closed, avgResp, breaches };
+    return { total, open, closed, notSet, avgResp, breaches };
   }, [incidents]);
 
   return (
@@ -615,6 +623,7 @@ export default function Dashboard() {
           <KpiCard label="Total Incidents" value={kpis.total || "—"} sub="Emergency / ICS domain, current window" />
           <KpiCard label="Open" value={kpis.open || "—"} accent={C.amber} sub="Response in progress" />
           <KpiCard label="Closed" value={kpis.closed || "—"} accent={C.green} sub="Response complete" />
+          <KpiCard label="Not Set" value={kpis.notSet} accent={C.muted} sub="Status missing in database" />
           <KpiCard label="Avg. Response Time" value={kpis.avgResp === "—" ? "—" : `${kpis.avgResp}d`} sub="Closed incidents, notification → response" />
           <KpiCard label="7-1-7 Breaches" value={kpis.breaches || "0"} accent={kpis.breaches ? C.red : C.green} sub="Incidents missing ≥1 target leg" />
         </div>
