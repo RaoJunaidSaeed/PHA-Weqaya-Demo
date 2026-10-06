@@ -142,7 +142,10 @@ export default function ChatPanel() {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)', maxWidth: '90%',
                 border: msg.role === 'system' ? `1px solid ${C.line}` : 'none'
               }}>
-                {msg.text}
+                /* {msg.text} */
+                <div dir="auto" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+  {msg.text}
+</div>
                 
                 {/* Citations block */}
                 {msg.citations && (
@@ -179,6 +182,7 @@ export default function ChatPanel() {
         <div style={{ padding: '16px', backgroundColor: 'white', borderTop: `1px solid ${C.line}` }}>
           <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
             <textarea
+               dir="auto"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
